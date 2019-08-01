@@ -12,7 +12,7 @@ const Package = require('./package.json')
 const images = require(`./config.json`)[process.env.CONFIG || 'production']
 
 if (!process.env.TOKEN)
-  return console.error("Error: You must set a TOKEN, USERNAME and PASSWORD as environment variables.")
+  return writeLogWithDate("Error: You must set a TOKEN, USERNAME and PASSWORD as environment variables.")
 
 const token = process.env.TOKEN || ''
 
@@ -23,16 +23,21 @@ function execShellCommand(cmd) {
   return new Promise((resolve, reject) => {
     child_process.exec(cmd, (error, stdout, stderr) => {
       if (error) {
-        console.warn(error);
+        writeLogWithDate(error);
       }
       resolve(stdout.trim());
     });
   });
 }
 
+function writeLogWithDate(log){
+  var datetime = new Date();
+  console.log(`${datetime}: ${log}`);
+}
+
 app.post('/webhook/:token', async (req, res) => {
   if (!req.params.token || req.params.token != token) {
-    console.log("Webhook called with invalid or missing token.")
+    writeLogWithDate('Webhook called with invalid or missing token.');
     return res.status(401).send('Access Denied: Token Invalid\n').end()
   }
 
@@ -42,12 +47,12 @@ app.post('/webhook/:token', async (req, res) => {
   const payload = req.body
   const image = `${payload.repository.repo_name}:${payload.push_data.tag}`
 
-  if (!images.includes(image)) return console.log(`Received updated for "${image}" but not configured to handle updates for this image.`)
+  if (!images.includes(image)) return cowriteLogWithDate(`Received updated for "${image}" but not configured to handle updates for this image.`)
 
-  console.log(`Start. Pulling Image = "${image}" and recreate all Containers of that.`);
+  writeLogWithDate(`Start. Pulling Image = "${image}" and recreate all Containers of that.`);
 
   let containerId = await execShellCommand(`docker container ls --filter ancestor=${image} -q`);
-  if(!containerId) return console.log('End. No have containers.');
+  if(!containerId) return writeLogWithDate('End. No have containers.');
 
   let containerDetailStr = await execShellCommand(`docker container inspect ${containerId}`);
   let containerDetail = JSON.parse(containerDetailStr);
@@ -69,7 +74,7 @@ app.post('/webhook/:token', async (req, res) => {
   generateDockerRunShell += (` ${image}`);
   await execShellCommand(generateDockerRunShell);
 
-  console.log(`End. Pulled Image = "${image}" and recreated all Containers of that`);
+  writeLogWithDate(`End. Pulled Image = "${image}" and recreated all Containers of that`);
 })
 
 app.all('*', (req, res) => {
@@ -78,5 +83,5 @@ app.all('*', (req, res) => {
 
 app.listen(process.env.PORT, err => {
   if (err) throw err
-  console.log(`Listening for webhooks on http://localhost:${process.env.PORT}/webhook/${token}`)
+  writeLogWithDate(`Listening for webhooks on http://localhost:${process.env.PORT}/webhook/${token}`)
 })
