@@ -1,5 +1,5 @@
 /**
- * A service for automated deployment from Docker Hub
+ * A service for automated deployment from Docker Hub to Docker Swarm
  * https://docs.docker.com/docker-hub/webhooks/
  */
 process.env.PORT = process.env.PORT || 3000
@@ -14,45 +14,41 @@ const images = require(`./config.json`)[process.env.CONFIG || 'production']
 if (!process.env.TOKEN)
   return console.error("Error: You must set a TOKEN, USERNAME and PASSWORD as environment variables.")
 
-const token = process.env.TOKEN ||
+const token = process.env.TOKEN || ''
 
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: true }))
 
 function execShellCommand(cmd) {
-  //console.log(cmd);
   return new Promise((resolve, reject) => {
     child_process.exec(cmd, (error, stdout, stderr) => {
       if (error) {
         console.warn(error);
       }
-      else{
-        //console.warn(`Result = "${stdout}"`);
-      }
-      resolve(stdout ? stdout.trim() : {
-        'error': error,
-        'stderr': stderr
-      });
+      resolve(stdout.trim());
     });
   });
 }
 
 app.post('/webhook/:token', async (req, res) => {
   if (!req.params.token || req.params.token != token) {
-    console.log("Webhook called with invalid or missing token.");
-    return res.status(401).send('Access Denied: Token Invalid\n').end();
+    console.log("Webhook called with invalid or missing token.")
+    return res.status(401).send('Access Denied: Token Invalid\n').end()
   }
 
   // Send response back right away if token was valid
-  res.send('OK');
+  res.send('OK')
 
-  const payload = req.body;
-  const image = `${payload.repository.repo_name}:${payload.push_data.tag}`;
+  const payload = req.body
+  const image = `${payload.repository.repo_name}:${payload.push_data.tag}`
 
-  console.log(`Start pull Image ="${image}" and recreate all Containers`);
   if (!images.includes(image)) return console.log(`Received updated for "${image}" but not configured to handle updates for this image.`)
 
+  console.log(`Start. Pulling Image = "${image}" and recreate all Containers of that.`);
+
   let containerId = await execShellCommand(`docker container ls --filter ancestor=${image} -q`);
+  if(!containerId) return console.log('End. No have containers.');
+
   let containerDetailStr = await execShellCommand(`docker container inspect ${containerId}`);
   let containerDetail = JSON.parse(containerDetailStr);
   await execShellCommand(`docker container stop ${containerId}`);
@@ -73,7 +69,7 @@ app.post('/webhook/:token', async (req, res) => {
   generateDockerRunShell += (` ${image}`);
   await execShellCommand(generateDockerRunShell);
 
-  console.log(`Pulled Image ="${image}" successfully and restarted all Containers.`)
+  console.log(`End. Pulled Image = "${image}" and recreated all Containers of that`);
 })
 
 app.all('*', (req, res) => {
