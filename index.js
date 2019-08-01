@@ -23,7 +23,21 @@ const registry = process.env.REGISTRY || ''
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: true }))
 
-app.post('/webhook/:token', (req, res) => {
+function execShellCommand(cmd) {
+  return new Promise((resolve, reject) => {
+    child_process.exec(cmd, (error, stdout, stderr) => {
+      if (error) {
+        console.warn(error);
+      }
+      resolve(stdout ? stdout : {
+        'error': error,
+        'stderr': stderr
+      });
+    });
+  });
+}
+
+app.post('/webhook/:token', async (req, res) => {
   if (!req.params.token || req.params.token != token) {
     console.log("Webhook called with invalid or missing token.")
     return res.status(401).send('Access Denied: Token Invalid\n').end()
@@ -37,24 +51,17 @@ app.post('/webhook/:token', (req, res) => {
 
   if (!services[image]) return console.log(`Received updated for "${image}" but not configured to handle updates for this image.`)
 
-  const service = services[image].service
-  
-  // Make sure we are logged in to be able to pull the image
-  child_process.exec(`${dockerCommand} login -u "${username}" -p "${password}" ${registry}`,
-    (error, stdout, stderr) => {
-      if (error) return console.error(error)
+  const LIST_CLI = services[image].cli
 
-      // Deploy the image and force a restart of the associated service
-      console.log(`Deploying ${image} to ${service}…`)
-      child_process.exec(`${dockerCommand} service update ${service} --force --with-registry-auth --image=${image}`,
-        (error, stdout, stderr) => {
-        if (error) {
-          console.error(`Failed to deploy ${image} to ${service}!`)
-          return console.error(error)
-        }
-        console.log(`Deployed ${image} to ${service} successfully and restarted the service.`)
-    })
-  })
+  for(let key in LIST_CLI){
+    let test = await execShellCommand(LIST_CLI[key]);
+    if(test.error){
+      console.error(`Failed to deploy ${image}`);
+      return console.error(test.stderr)
+    }
+  }
+
+  console.log(`Deployed ${image} successfully and restarted the docker-compose.`)
 })
 
 app.all('*', (req, res) => {
