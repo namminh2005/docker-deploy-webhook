@@ -47,7 +47,6 @@ app.post('/webhook/:token', async (req, res) => {
   res.send('OK');
 
   const payload = req.body;
-  console.log(payload);
   const image = `${payload.repository.repo_name}:${payload.push_data.tag}`;
 
   console.log(`Start pull Image ="${image}" and recreate all Containers`);
