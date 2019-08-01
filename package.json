@@ -1,7 +1,7 @@
 {
-  "name": "docker-deploy-webhook",
+  "name": "minhbn-docker-webhook-auto-deploy",
   "version": "1.0.0",
-  "description": "Automated deployment of releases from Docker Hub to a Docker Swarm",
+  "description": "Docker webhook + Auto pull image + Recreate all containers of that image",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",

@@ -1,7 +1,7 @@
 version: '3'
 services:
-  docker-deploy-webhook:
-    container_name: docker-deploy-webhook
+  minhbn-docker-webhook-auto-deploy:
+    container_name: minhbn-docker-webhook-auto-deploy
     build: .
     #image: namminh2005/minh_ddw:latest
     ports:
@@ -9,9 +9,7 @@ services:
     environment:
       - PORT=8080
       - CONFIG=production
-      - TOKEN=minhtest
-      - USERNAME=test
-      - PASSWORD=test
+      - TOKEN=f0Hm3zA3Li7IbEyNe8KUddMHtdCLv71f
     restart: unless-stopped
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
