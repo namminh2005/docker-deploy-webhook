@@ -1,0 +1,17 @@
+version: '3'
+services:
+  docker-deploy-webhook:
+    container_name: docker-deploy-webhook
+    build: .
+    #image: namminh2005/minh_ddw:latest
+    ports:
+      - "8000:8080"
+    environment:
+      - PORT=8080
+      - CONFIG=production
+      - TOKEN=minhtest
+      - USERNAME=test
+      - PASSWORD=test
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock

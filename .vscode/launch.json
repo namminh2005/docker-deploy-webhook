@@ -12,7 +12,8 @@
             "env": {
                 "TOKEN": "hidockerweebhook",
                 "USERNAME": "test",
-                "PASSWORD": "test"
+                "PASSWORD": "test",
+                "CONFIG": "production"
             },
         }
     ]

@@ -1,21 +1,6 @@
 {
-  "production": {
-    "svendowideit/testhook:latest": {
-      "cli": [
-        "docker-compose -f /usr/src/docker-compose/vivuvoucher/docker-compose.yml stop",
-        "docker-compose -f /usr/src/docker-compose/vivuvoucher/docker-compose.yml down",
-        "docker-compose -f /usr/src/docker-compose/vivuvoucher/docker-compose.yml rm -f",
-        "docker-compose -f /usr/src/docker-compose/vivuvoucher/docker-compose.yml pull",
-        "docker-compose -f /usr/src/docker-compose/vivuvoucher/docker-compose.yml up -d"
-      ]
-    }
-  },
-  "development": {
-    "my-org/my-repo:development": {
-      "service": "my-docker-service"
-    },
-    "my-org/my-other-repo:development": {
-      "service": "my-other-docker-service"
-    }
-  }
+  "production": [
+    "namminh2005/vivuvoucher:latest"
+  ],
+  "development": []
 }

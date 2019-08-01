@@ -9,7 +9,7 @@ const bodyParser = require('body-parser')
 const child_process = require('child_process')
 const app = express()
 const Package = require('./package.json')
-const services = require(`./config.json`)[process.env.CONFIG || 'production']
+const images = require(`./config.json`)[process.env.CONFIG || 'production']
 
 if (!process.env.TOKEN || !process.env.USERNAME || !process.env.PASSWORD)
   return console.error("Error: You must set a TOKEN, USERNAME and PASSWORD as environment variables.")
@@ -24,18 +24,24 @@ app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: true }))
 
 function execShellCommand(cmd) {
+  console.log(cmd);
   return new Promise((resolve, reject) => {
     child_process.exec(cmd, (error, stdout, stderr) => {
       if (error) {
         console.warn(error);
       }
-      resolve(stdout ? stdout : {
+      else{
+        console.warn(`Result = "${stdout}"`);
+      }
+      resolve(stdout ? stdout.trim() : {
         'error': error,
         'stderr': stderr
       });
     });
   });
 }
+
+
 
 app.post('/webhook/:token', async (req, res) => {
   if (!req.params.token || req.params.token != token) {
@@ -49,17 +55,28 @@ app.post('/webhook/:token', async (req, res) => {
   const payload = req.body
   const image = `${payload.repository.repo_name}:${payload.push_data.tag}`
 
-  if (!services[image]) return console.log(`Received updated for "${image}" but not configured to handle updates for this image.`)
+  if (!images.includes(image)) return console.log(`Received updated for "${image}" but not configured to handle updates for this image.`)
 
-  const LIST_CLI = services[image].cli
+  let containerId = await execShellCommand(`docker container ls --filter ancestor=${image} -q`);
+  let containerDetailStr = await execShellCommand(`docker container inspect ${containerId}`);
+  let containerDetail = JSON.parse(containerDetailStr);
+  await execShellCommand(`docker container stop ${containerId}`);
+  await execShellCommand(`docker container rm ${containerId}`);
+  await execShellCommand(`docker pull ${image}`);
 
-  for(let key in LIST_CLI){
-    let test = await execShellCommand(LIST_CLI[key]);
-    if(test.error){
-      console.error(`Failed to deploy ${image}`);
-      return console.error(test.stderr)
-    }
+  let generateDockerRunShell = 'docker run -dit';
+  let containerLabels = containerDetail[0].Config.Labels;
+  let containerNetworks = containerDetail[0].NetworkSettings.Networks;
+  let containerName = containerDetail[0].Name.substr(1, containerDetail[0].Name.length - 1);
+  for(let key in containerLabels){
+    generateDockerRunShell += (` -l ${key}=${containerLabels[key]}`);
   }
+  for(let key in containerNetworks){
+    generateDockerRunShell += (` --network=${key}`);
+  }
+  generateDockerRunShell += (` --name ${containerName}`);
+  generateDockerRunShell += (` ${image}`);
+  await execShellCommand(generateDockerRunShell);
 
   console.log(`Deployed ${image} successfully and restarted the docker-compose.`)
 })
