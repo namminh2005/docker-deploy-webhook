@@ -9,7 +9,7 @@ const bodyParser = require('body-parser')
 const child_process = require('child_process')
 const app = express()
 const Package = require('./package.json')
-const images = require(`./config.json`)[process.env.CONFIG || 'production']
+const images = require(`./conf/config.json`)[process.env.CONFIG || 'production']
 
 if (!process.env.TOKEN)
   return writeLogWithDate("Error: You must set a TOKEN, USERNAME and PASSWORD as environment variables.")
