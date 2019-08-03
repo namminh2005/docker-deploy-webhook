@@ -4,7 +4,7 @@ FROM node:8-alpine
 
 RUN mkdir -p /usr/src/app
 COPY index.js /usr/src/app
-COPY config.json /usr/src/app
+COPY conf/. /usr/src/app/
 COPY package.json /usr/src/app
 COPY npm-shrinkwrap.json /usr/src/app
 WORKDIR /usr/src/app
