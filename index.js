@@ -67,12 +67,13 @@ app.post('/webhook/:token', async (req, res) => {
   for(let key in containerLabels){
     generateDockerRunShell += (` -l ${key}=${containerLabels[key]}`);
   }
-  for(let key in containerNetworks){
-    generateDockerRunShell += (` --network=${key}`);
-  }
   generateDockerRunShell += (` --name ${containerName}`);
   generateDockerRunShell += (` ${image}`);
   await execShellCommand(generateDockerRunShell);
+
+  for(let key in containerNetworks){
+    await execShellCommand(`docker network connect ${key} ${containerName}`);
+  }
 
   writeLogWithDate(`End. Pulled Image = "${image}" and recreated all Containers of that`);
 })
