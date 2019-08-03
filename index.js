@@ -60,7 +60,7 @@ app.post('/webhook/:token', async (req, res) => {
   await execShellCommand(`docker container rm ${containerId}`);
   await execShellCommand(`docker pull ${image}`);
 
-  let generateDockerRunShell = 'docker container create -dit';
+  let generateDockerRunShell = 'docker container create -it';
   let containerLabels = containerDetail[0].Config.Labels;
   let containerNetworks = containerDetail[0].NetworkSettings.Networks;
   let containerName = containerDetail[0].Name.substr(1, containerDetail[0].Name.length - 1);
