@@ -60,7 +60,7 @@ app.post('/webhook/:token', async (req, res) => {
   await execShellCommand(`docker container rm ${containerId}`);
   await execShellCommand(`docker pull ${image}`);
 
-  let generateDockerRunShell = 'docker run -dit';
+  let generateDockerRunShell = 'docker container create -dit';
   let containerLabels = containerDetail[0].Config.Labels;
   let containerNetworks = containerDetail[0].NetworkSettings.Networks;
   let containerName = containerDetail[0].Name.substr(1, containerDetail[0].Name.length - 1);
@@ -74,6 +74,8 @@ app.post('/webhook/:token', async (req, res) => {
   for(let key in containerNetworks){
     await execShellCommand(`docker network connect ${key} ${containerName}`);
   }
+
+  await execShellCommand(`docker container start ${containerName}`);
 
   writeLogWithDate(`End. Pulled Image = "${image}" and recreated all Containers of that`);
 })
