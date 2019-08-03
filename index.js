@@ -47,7 +47,7 @@ app.post('/webhook/:token', async (req, res) => {
   const payload = req.body
   const image = `${payload.repository.repo_name}:${payload.push_data.tag}`
 
-  if (!images.includes(image)) return cowriteLogWithDate(`Received updated for "${image}" but not configured to handle updates for this image.`)
+  if (!images.includes(image)) return writeLogWithDate(`Received updated for "${image}" but not configured to handle updates for this image.`)
 
   writeLogWithDate(`Start. Pulling Image = "${image}" and recreate all Containers of that.`);
 
