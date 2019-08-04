@@ -61,6 +61,7 @@ app.post('/webhook/:token', async (req, res) => {
   await execShellCommand(`docker pull ${image}`);
 
   let generateDockerRunShell = 'docker container create -it';
+  let hostName = containerDetail[0].Config.Hostname;
   let containerLabels = containerDetail[0].Config.Labels;
   let containerNetworks = containerDetail[0].NetworkSettings.Networks;
   let containerName = containerDetail[0].Name.substr(1, containerDetail[0].Name.length - 1);
@@ -76,10 +77,11 @@ app.post('/webhook/:token', async (req, res) => {
     let aliases = containerNetworks[key].Aliases;
     let dockerNetworkCmd = 'docker network connect';
     for(let keyl in links){
-      dockerNetworkCmd += (' --link ' + keyl);
+      dockerNetworkCmd += (' --link ' + links[keyl]);
     }
     for(let keya in aliases){
-      dockerNetworkCmd += (' --alias ' + keya);
+      if(aliases[keya] == hostName) continue;
+      dockerNetworkCmd += (' --alias ' + aliases[keya]);
     }
     console.log(dockerNetworkCmd + ` ${key} ${containerName}`);
     await execShellCommand(dockerNetworkCmd + ` ${key} ${containerName}`);
