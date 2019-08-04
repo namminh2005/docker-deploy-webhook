@@ -72,7 +72,17 @@ app.post('/webhook/:token', async (req, res) => {
   await execShellCommand(generateDockerRunShell);
 
   for(let key in containerNetworks){
-    await execShellCommand(`docker network connect ${key} ${containerName}`);
+    let links = containerNetworks[key].Links;
+    let aliases = containerNetworks[key].Aliases;
+    let dockerNetworkCmd = 'docker network connect';
+    for(let keyl in links){
+      dockerNetworkCmd += (' --link ' + keyl);
+    }
+    for(let keya in aliases){
+      dockerNetworkCmd += (' --alias ' + keya);
+    }
+    console.log(dockerNetworkCmd + ` ${key} ${containerName}`);
+    await execShellCommand(dockerNetworkCmd + ` ${key} ${containerName}`);
   }
 
   await execShellCommand(`docker container start ${containerName}`);
