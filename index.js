@@ -83,7 +83,6 @@ app.post('/webhook/:token', async (req, res) => {
       if(aliases[keya] == hostName) continue;
       dockerNetworkCmd += (' --alias ' + aliases[keya]);
     }
-    console.log(dockerNetworkCmd + ` ${key} ${containerName}`);
     await execShellCommand(dockerNetworkCmd + ` ${key} ${containerName}`);
   }
 
