@@ -10,7 +10,7 @@ services:
       - PORT=8080
       - CONFIG=production
       - TOKEN=f0Hm3zA3Li7IbEyNe8KUddMHtdCLv71f
-    restart: unless-stopped
+    restart: always
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-      #- ./volumes/conf/:./conf
+      - /var/run/docker.sock:/var/run/docker.sock # set this for use 'docker' CLI of host in container
+      - ./volumes/conf:/usr/src/app/conf

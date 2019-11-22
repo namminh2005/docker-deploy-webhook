@@ -1,0 +1,6 @@
+{
+  "production": [
+    "namminh2005/vivuvoucher:latest"
+  ],
+  "development": []
+}
